@@ -3,7 +3,7 @@ services:
     build: .
     container_name: rn-app
     # En Linux, para evitar ficheros root en el host, descomenta:
-    user: "${UID:-1000}:${GID:-1000}"
+    user: "0:0"
 
     volumes:
       - ./app:/app
@@ -21,7 +21,22 @@ services:
 
     # Cuando ya exista package.json, arrancará Expo con el CLI local (npm).
     # Si no existe aún, se queda en idle sin fallar.
-    command: bash -lc 'cd /app && if [ -f package.json ]; then npx expo start --host tunnel --web; else echo "No package.json aún. En reposo..."; sleep infinity; fi'
+    command: >
+      bash -lc '
+        # 1) Asegurar permisos "amables" en /app y derivados
+        mkdir -p /app /app/node_modules /home/node/.npm &&
+        chmod -R u+rwX,g+rwX,o+rwX /app /app/node_modules /home/node/.npm &&
+        # 2) Que TODO lo nuevo nazca con permisos abiertos (multi-usuario)
+        umask 000;
+        # 3) Si hay proyecto, arrancar; si no, quedarse en reposo
+        cd /app &&
+        if [ -f package.json ]; then
+          npx expo start --host tunnel --web;
+        else
+          echo "No hay proyecto aún (package.json). Quedo en reposo...";
+          sleep infinity;
+        fi
+      '
 
 volumes:
   node_modules:
