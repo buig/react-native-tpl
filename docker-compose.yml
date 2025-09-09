@@ -1,0 +1,27 @@
+services:
+  app:
+    build: .
+    container_name: rn-app
+    # En Linux, para evitar ficheros root en el host, descomenta:
+    user: "${UID:-1000}:${GID:-1000}"
+
+    volumes:
+      - ./app:/app
+
+    environment:
+      EXPO_DEVTOOLS_LISTEN_ADDRESS: 0.0.0.0
+      CHOKIDAR_USEPOLLING: "true"
+
+    ports:
+      - "19000:19000"  # native
+      - "19001:19001"  # WS
+      - "19002:19002"  # DevTools
+      - "19006:19006"  # Web
+      - "8081:8081"    # Metro RN
+
+    # Cuando ya exista package.json, arrancará Expo con el CLI local (npm).
+    # Si no existe aún, se queda en idle sin fallar.
+    command: bash -lc 'cd /app && if [ -f package.json ]; then npx expo start --host tunnel --web; else echo "No package.json aún. En reposo..."; sleep infinity; fi'
+
+volumes:
+  node_modules:
