@@ -18,6 +18,8 @@ services:
       - "19002:19002"  # DevTools
       - "19006:19006"  # Web
       - "8081:8081"    # Metro RN
+      - "5173:5173"             # Vite dev
+      - "4173:4173"             # Vite preview (tras build)
 
     # Cuando ya exista package.json, arrancará Expo con el CLI local (npm).
     # Si no existe aún, se queda en idle sin fallar.
